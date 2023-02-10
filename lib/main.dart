@@ -3,7 +3,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xi_zack_client/di.dart';
-import 'package:xi_zack_client/features/sign_in/sign_in_screen.dart';
+import 'package:xi_zack_client/features/sign_in/presentation/screen/sign_in_screen.dart';
 
 final GetIt injector = GetIt.instance;
 
@@ -29,9 +29,7 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(
               primarySwatch: Colors.blue,
             ),
-            home: SignInScreen(
-              authService: injector.get(),
-            ),
+            home: SignInScreen(),
             builder: EasyLoading.init(),
           );
         });

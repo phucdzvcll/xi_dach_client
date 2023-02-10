@@ -5,7 +5,7 @@
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
-// ignore_for_file: directives_ordering,unnecessary_import
+// ignore_for_file: directives_ordering,unnecessary_import,implicit_dynamic_list_literal
 
 import 'package:flutter/widgets.dart';
 
@@ -223,6 +223,63 @@ class $AssetsImagesGen {
   /// File path: assets/images/card_back.png
   AssetGenImage get cardBack =>
       const AssetGenImage('assets/images/card_back.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [
+        playingCardClub10,
+        playingCardClub2,
+        playingCardClub3,
+        playingCardClub4,
+        playingCardClub5,
+        playingCardClub6,
+        playingCardClub7,
+        playingCardClub8,
+        playingCardClub9,
+        playingCardClubA,
+        playingCardClubJ,
+        playingCardClubK,
+        playingCardClubQ,
+        playingCardDiamond10,
+        playingCardDiamond2,
+        playingCardDiamond3,
+        playingCardDiamond4,
+        playingCardDiamond5,
+        playingCardDiamond6,
+        playingCardDiamond7,
+        playingCardDiamond8,
+        playingCardDiamond9,
+        playingCardDiamondA,
+        playingCardDiamondJ,
+        playingCardDiamondK,
+        playingCardDiamondQ,
+        playingCardHeart10,
+        playingCardHeart2,
+        playingCardHeart3,
+        playingCardHeart4,
+        playingCardHeart5,
+        playingCardHeart6,
+        playingCardHeart7,
+        playingCardHeart8,
+        playingCardHeart9,
+        playingCardHeartA,
+        playingCardHeartJ,
+        playingCardHeartK,
+        playingCardHeartQ,
+        playingCardSpade10,
+        playingCardSpade2,
+        playingCardSpade3,
+        playingCardSpade4,
+        playingCardSpade5,
+        playingCardSpade6,
+        playingCardSpade7,
+        playingCardSpade8,
+        playingCardSpade9,
+        playingCardSpadeA,
+        playingCardSpadeJ,
+        playingCardSpadeK,
+        playingCardSpadeQ,
+        cardBack
+      ];
 }
 
 class Assets {
@@ -288,6 +345,8 @@ class AssetGenImage {
       cacheHeight: cacheHeight,
     );
   }
+
+  ImageProvider provider() => AssetImage(_assetName);
 
   String get path => _assetName;
 

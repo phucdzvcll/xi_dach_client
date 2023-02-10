@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xi_zack_client/common/extensions.dart';
+import 'package:xi_zack_client/common/base/extensions/extensions.dart';
 import 'package:xi_zack_client/features/lobby/bloc/lobby_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

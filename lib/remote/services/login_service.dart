@@ -13,7 +13,6 @@ class AuthenticationService {
 
   final dio = Dio(BaseOptions(
     connectTimeout: 10000,
-    baseUrl: "http://127.0.0.1:8989",
     sendTimeout: 30000,
   ));
 
