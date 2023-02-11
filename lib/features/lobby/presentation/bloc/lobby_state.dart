@@ -27,3 +27,30 @@ class ConnectingToSocketSuccess extends LobbyState {
   @override
   List<Object?> get props => [socketId];
 }
+
+class LobbyErrorState extends LobbyState {
+  final String mess;
+
+  LobbyErrorState({
+    required this.mess,
+  });
+
+  @override
+  List<Object?> get props => [mess];
+}
+
+class RenderLobbyState extends LobbyState {
+  final List<Room> rooms;
+
+  RenderLobbyState({
+    required this.rooms,
+  });
+
+  @override
+  List<Object?> get props => [rooms];
+}
+
+class CreatingRoomState extends LobbyState {
+  @override
+  List<Object?> get props => [];
+}

@@ -1,20 +1,3 @@
-enum SocketEvent {
-  connect,
-  connect_error,
-  connect_timeout,
-  connecting,
-  disconnect,
-  error,
-  reconnect,
-  reconnect_attempt,
-  reconnect_failed,
-  reconnect_error,
-  reconnecting,
-  ping,
-  pong,
-  userJoined
-}
-
 enum PokerCard {
   spaceA,
   space2,

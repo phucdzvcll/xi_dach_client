@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,6 +12,7 @@ final GetIt injector = GetIt.instance;
 void main() async {
   await init(injector);
   EasyLoading.instance.maskColor = Colors.grey;
+  EquatableConfig.stringify = true;
   runApp(const MyApp());
 }
 
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
         splitScreenMode: true,
         builder: (context, _) {
           return MaterialApp(
+            debugShowCheckedModeBanner: false,
             title: 'Flutter Demo',
             onGenerateRoute: (setting) {
               return MaterialPageRoute(builder: (context) {
