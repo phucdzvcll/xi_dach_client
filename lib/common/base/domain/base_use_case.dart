@@ -16,3 +16,5 @@ abstract class BaseUseCase<I, O> {
 }
 
 abstract class Param {}
+
+class EmptyParam extends Param{}
