@@ -1,8 +1,8 @@
 import 'package:xi_zack_client/common/base/domain/either.dart';
 import 'package:xi_zack_client/common/base/interceptor/failuare.dart';
-import 'package:xi_zack_client/features/domain/entities/room.dart';
-import 'package:xi_zack_client/features/domain/repositories/lobby_repository.dart';
-import 'package:xi_zack_client/features/data/response/room_response.dart';
+import 'package:xi_zack_client/features/lobby/data/response/room_response.dart';
+import 'package:xi_zack_client/features/lobby/domain/entities/room.dart';
+import 'package:xi_zack_client/features/lobby/domain/repositories/lobby_repository.dart';
 
 import '../../domain/mapper/room_mapper.dart';
 

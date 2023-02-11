@@ -1,8 +1,8 @@
 import 'package:xi_zack_client/common/base/domain/base_use_case.dart';
 import 'package:xi_zack_client/common/base/domain/either.dart';
 import 'package:xi_zack_client/common/base/interceptor/failuare.dart';
-import 'package:xi_zack_client/features/domain/entities/room.dart';
-import 'package:xi_zack_client/features/domain/repositories/lobby_repository.dart';
+import 'package:xi_zack_client/features/lobby/domain/entities/room.dart';
+import 'package:xi_zack_client/features/lobby/domain/repositories/lobby_repository.dart';
 
 class JoinToLobbySuccessUseCase
     extends BaseUseCase<JoinToLobbySuccessParam, List<Room>> {

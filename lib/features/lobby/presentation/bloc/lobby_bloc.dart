@@ -5,9 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xi_zack_client/common/base/domain/either.dart';
 import 'package:xi_zack_client/common/base/interceptor/failuare.dart';
 import 'package:xi_zack_client/common/socket/app_socket.dart';
-import 'package:xi_zack_client/features/domain/entities/room.dart';
-
-import '../../../domain/use_case/join_to_lobby_success_use_case.dart';
+import 'package:xi_zack_client/common/user_cache.dart';
+import 'package:xi_zack_client/features/lobby/domain/entities/room.dart';
+import 'package:xi_zack_client/features/lobby/domain/use_case/join_to_lobby_success_use_case.dart';
 
 part 'lobby_event.dart';
 
@@ -40,6 +40,7 @@ class _LobbyErrorEvent extends LobbyEvent {
 class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
   final AppSocketIo appSocketIo;
   final JoinToLobbySuccessUseCase joinToLobbySuccessHandler;
+  final UserCache userCache;
 
   @override
   void onChange(Change<LobbyState> change) {
@@ -50,6 +51,7 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
   LobbyBloc({
     required this.appSocketIo,
     required this.joinToLobbySuccessHandler,
+    required this.userCache,
   }) : super(LobbyInitial()) {
     on<InitEvent>(
       (event, emit) async {
@@ -83,6 +85,15 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
             add(_LobbyErrorEvent(errorMss: e.toString()));
           }
         });
+
+        appSocketIo.socket.on("createRoomSuccess", (data) {
+          try {
+            String roomId = data['roomId'];
+            add(JoinToRoom(roomId: roomId));
+          } catch (e) {
+            add(_LobbyErrorEvent(errorMss: e.toString()));
+          }
+        });
       },
     );
 
@@ -92,6 +103,7 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
 
     on<_ConnectToEvent>((event, emit) {
       if (event.isConnectSuccessfully) {
+        userCache.socketId = appSocketIo.socket.id;
         emit(ConnectingToSocketSuccess(socketId: appSocketIo.socket.id ?? ""));
         appSocketIo.socket.emit("joinToLobby", {});
       } else {
@@ -122,6 +134,14 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
       emit(CreatingRoomState());
       appSocketIo.socket.emit("createRoom", {
         "roomName": event.roomName,
+      });
+    });
+
+    on<JoinToRoom>((event, emit) {
+      appSocketIo.socket.emit("joinRoom", {
+        "roomId": event.roomId,
+        "socketId": userCache.socketId,
+        "playerId": userCache.id,
       });
     });
   }

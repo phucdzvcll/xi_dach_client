@@ -11,3 +11,11 @@ class CreateRoomEvent extends LobbyEvent {
     required this.roomName,
   });
 }
+
+class JoinToRoom extends LobbyEvent {
+  final String roomId;
+
+  JoinToRoom({
+    required this.roomId,
+  });
+}

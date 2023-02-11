@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
-import 'package:xi_zack_client/features/domain/entities/room.dart';
+import 'package:xi_zack_client/features/lobby/domain/entities/room.dart';
 import 'package:xi_zack_client/features/lobby/presentation/bloc/lobby_bloc.dart';
 
 class LobbyScreen extends StatelessWidget {
@@ -50,7 +50,7 @@ class LobbyScreen extends StatelessWidget {
             },
             child: Scaffold(
               appBar: _renderAppBar(blocContext, bloc),
-              body: _renderLobby(),
+              body: _renderLobby(bloc),
             ),
           );
         },
@@ -58,7 +58,7 @@ class LobbyScreen extends StatelessWidget {
     );
   }
 
-  Widget _renderLobby() {
+  Widget _renderLobby(LobbyBloc bloc) {
     return BlocBuilder<LobbyBloc, LobbyState>(
       buildWhen: (previous, current) => current is RenderLobbyState,
       builder: (context, state) {
@@ -79,19 +79,25 @@ class LobbyScreen extends StatelessWidget {
           padding: const EdgeInsets.all(7.0),
           itemBuilder: (ctx, index) {
             final room = rooms[index];
-            return DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 1),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(7.0),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Text(room.roomName),
-                      Text(room.roomId),
-                      Text(room.dateTime.toString()),
-                    ],
+            return GestureDetector(
+              onTap: () {
+                bloc.add(JoinToRoom(roomId: room.roomId));
+              },
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 1),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(7.0),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Text(room.roomName),
+                        Text(room.roomId),
+                        Text(room.dateTime.toString()),
+                        Text(room.player.length.toString()),
+                      ],
+                    ),
                   ),
                 ),
               ),

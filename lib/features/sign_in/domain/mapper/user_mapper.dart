@@ -7,7 +7,7 @@ class UserMapper extends Mapper<UserResponse?, User> {
   User map(UserResponse? input) {
     return User(
       userName: input?.username ?? "",
-      password: input?.userId ?? "",
+      id: input?.userId ?? "",
     );
   }
 }
