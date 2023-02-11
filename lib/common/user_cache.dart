@@ -1,13 +1,11 @@
 class UserCache {
   String? userName;
-  String? uuid;
-  int? index;
+  String? id;
   String? socketId;
 
   UserCache({
     this.userName,
-    this.uuid,
-    this.index,
+    this.id,
     this.socketId,
   });
 }

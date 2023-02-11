@@ -1,7 +1,7 @@
 import 'package:xi_zack_client/common/base/domain/either.dart';
 import 'package:xi_zack_client/common/base/interceptor/failuare.dart';
 import 'package:xi_zack_client/common/base/interceptor/network.dart';
-import 'package:xi_zack_client/features/sign_in/data/models/user_response.dart';
+import 'package:xi_zack_client/features/sign_in/data/entities//user_response.dart';
 import 'package:xi_zack_client/features/sign_in/domain/repositories/sign_in_repository.dart';
 import 'package:xi_zack_client/features/sign_in/data/services/sign_in_service.dart';
 import 'package:xi_zack_client/features/sign_in/domain/entities/user.dart';

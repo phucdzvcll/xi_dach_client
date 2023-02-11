@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
-import 'package:xi_zack_client/features/lobby/lobby_screen.dart';
+import 'package:xi_zack_client/features/lobby/presentation/screen/lobby_screen.dart';
 import 'package:xi_zack_client/features/sign_in/presentation/bloc/sign_in_bloc.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -31,10 +31,7 @@ class SignInScreen extends StatelessWidget {
             }
 
             if (state is LoggingSuccess) {
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) {
-                return const LobbyScreen();
-              }));
+              Navigator.pushReplacementNamed(context, LobbyScreen.routePath);
             }
           },
           child: Scaffold(
