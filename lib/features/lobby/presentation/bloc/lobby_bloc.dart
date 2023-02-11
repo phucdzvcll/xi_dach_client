@@ -5,8 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xi_zack_client/common/base/domain/either.dart';
 import 'package:xi_zack_client/common/base/interceptor/failuare.dart';
 import 'package:xi_zack_client/common/socket/app_socket.dart';
-import 'package:xi_zack_client/features/lobby/handler/join_to_lobby_success_handler.dart';
-import 'package:xi_zack_client/features/lobby/handler/models/Room.dart';
+import 'package:xi_zack_client/features/domain/entities/room.dart';
+
+import '../../../domain/use_case/join_to_lobby_success_use_case.dart';
 
 part 'lobby_event.dart';
 
@@ -38,7 +39,7 @@ class _LobbyErrorEvent extends LobbyEvent {
 
 class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
   final AppSocketIo appSocketIo;
-  final JoinToLobbySuccessHandler joinToLobbySuccessHandler;
+  final JoinToLobbySuccessUseCase joinToLobbySuccessHandler;
 
   @override
   void onChange(Change<LobbyState> change) {
@@ -100,8 +101,10 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
 
     on<_RenderLobbyEvent>(
       (event, emit) async {
+        final List data = event.data;
         final Either<Failure, List<Room>> result =
-            await joinToLobbySuccessHandler.execute(event.data);
+            await joinToLobbySuccessHandler
+                .execute(JoinToLobbySuccessParam(data: data));
         if (result.isSuccess) {
           emit(RenderLobbyState(rooms: result.success));
         } else {

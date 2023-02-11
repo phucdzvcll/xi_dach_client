@@ -1,6 +1,6 @@
 import 'package:xi_zack_client/common/mapper.dart';
-import 'package:xi_zack_client/features/lobby/handler/models/Room.dart';
-import 'package:xi_zack_client/features/lobby/handler/response/room_response.dart';
+import 'package:xi_zack_client/features/data/response/room_response.dart';
+import 'package:xi_zack_client/features/domain/entities/room.dart';
 
 class RoomMapper extends Mapper<RoomResponse, Room> {
   @override

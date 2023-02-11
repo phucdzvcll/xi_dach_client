@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
-import 'package:xi_zack_client/features/lobby/handler/models/Room.dart';
+import 'package:xi_zack_client/features/domain/entities/room.dart';
 import 'package:xi_zack_client/features/lobby/presentation/bloc/lobby_bloc.dart';
 
 class LobbyScreen extends StatelessWidget {
