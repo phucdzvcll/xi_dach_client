@@ -39,51 +39,53 @@ class SignInScreen extends StatelessWidget {
               title: const Text(
                 'Login to play',
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: const BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Colors.grey))),
-                    child: TextField(
-                      controller: _userNameController,
-                      decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "User Name",
-                          hintStyle: TextStyle(color: Colors.grey[400])),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Password",
-                        hintStyle: TextStyle(color: Colors.grey[400]),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: const BoxDecoration(
+                          border: Border(bottom: BorderSide(color: Colors.grey))),
+                      child: TextField(
+                        controller: _userNameController,
+                        decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: "User Name",
+                            hintStyle: TextStyle(color: Colors.grey[400])),
                       ),
                     ),
-                  ),
-                  BlocBuilder<SignInBloc, SignInState>(
-                    builder: (context, state) {
-                      String errorMess = "";
-                      if (state is LoggingFail) {
-                        errorMess = state.errorMess;
-                      }
-                      return Visibility(
-                        visible: errorMess.isNotEmpty,
-                        child: Text(
-                          errorMess,
-                          style:
-                              const TextStyle(color: Colors.red, fontSize: 13),
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "Password",
+                          hintStyle: TextStyle(color: Colors.grey[400]),
                         ),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    ),
+                    BlocBuilder<SignInBloc, SignInState>(
+                      builder: (context, state) {
+                        String errorMess = "";
+                        if (state is LoggingFail) {
+                          errorMess = state.errorMess;
+                        }
+                        return Visibility(
+                          visible: errorMess.isNotEmpty,
+                          child: Text(
+                            errorMess,
+                            style:
+                                const TextStyle(color: Colors.red, fontSize: 13),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
               actions: <Widget>[
                 TextButton(
