@@ -54,3 +54,19 @@ class CreatingRoomState extends LobbyState {
   @override
   List<Object?> get props => [];
 }
+
+class JoinToRoomState extends LobbyState {
+  final String roomId;
+  final String roomName;
+
+  JoinToRoomState({
+    required this.roomId,
+    required this.roomName,
+  });
+
+  @override
+  List<Object?> get props => [
+        roomId,
+        roomName,
+      ];
+}

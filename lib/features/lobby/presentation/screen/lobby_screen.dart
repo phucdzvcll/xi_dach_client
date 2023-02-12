@@ -4,6 +4,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
 import 'package:xi_zack_client/features/lobby/domain/entities/room.dart';
 import 'package:xi_zack_client/features/lobby/presentation/bloc/lobby_bloc.dart';
+import 'package:xi_zack_client/features/room/view/screen/room_screen.dart';
 
 class LobbyScreen extends StatelessWidget {
   const LobbyScreen({Key? key}) : super(key: key);
@@ -46,6 +47,13 @@ class LobbyScreen extends StatelessWidget {
               } else if (state is ConnectingToSocketSuccess) {
                 EasyLoading.showSuccess("Connect Success",
                     duration: const Duration(seconds: 3));
+              } else if (state is JoinToRoomState) {
+                Navigator.pushNamed(
+                  context,
+                  RoomScreen.routePath,
+                  arguments: RoomArgument(
+                      roomId: state.roomId, roomName: state.roomName),
+                );
               }
             },
             child: Scaffold(
@@ -72,7 +80,7 @@ class LobbyScreen extends StatelessWidget {
 
         return GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
+            crossAxisCount: 6,
             childAspectRatio: 1,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
@@ -82,7 +90,8 @@ class LobbyScreen extends StatelessWidget {
             final room = rooms[index];
             return GestureDetector(
               onTap: () {
-                bloc.add(JoinToRoom(roomId: room.roomId));
+                bloc.add(JoinToRoomEvent(
+                    roomId: room.roomId, roomName: room.roomName));
               },
               child: Padding(
                 padding: const EdgeInsets.all(7.0),

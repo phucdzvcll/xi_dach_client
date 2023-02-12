@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xi_zack_client/di.dart';
 import 'package:xi_zack_client/features/lobby/presentation/screen/lobby_screen.dart';
+import 'package:xi_zack_client/features/room/view/screen/room_screen.dart';
 import 'package:xi_zack_client/features/sign_in/presentation/screen/sign_in_screen.dart';
 
 final GetIt injector = GetIt.instance;
@@ -37,6 +38,12 @@ class MyApp extends StatelessWidget {
                     return SignInScreen();
                   case LobbyScreen.routePath:
                     return const LobbyScreen();
+                  case RoomScreen.routePath:
+                    final RoomArgument args = setting.arguments as RoomArgument;
+                    return RoomScreen(
+                      roomId: args.roomId,
+                      roomName: args.roomName,
+                    );
                   default:
                     return SignInScreen();
                 }

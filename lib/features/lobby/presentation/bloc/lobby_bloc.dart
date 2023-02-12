@@ -88,11 +88,16 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
 
         appSocketIo.socket.on("createRoomSuccess", (data) {
           try {
-            String roomId = data['roomId'];
-            add(JoinToRoom(roomId: roomId));
+            String roomId = data['roomId'] ?? "";
+            String roomName = data['roomName'] ?? "";
+            add(JoinToRoomEvent(roomId: roomId, roomName: roomName));
           } catch (e) {
             add(_LobbyErrorEvent(errorMss: e.toString()));
           }
+        });
+
+        appSocketIo.socket.on("socketError", (data) {
+          add(_LobbyErrorEvent(errorMss: data['mess']));
         });
       },
     );
@@ -138,12 +143,11 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
       });
     });
 
-    on<JoinToRoom>((event, emit) {
-      appSocketIo.socket.emit("joinRoom", {
-        "roomId": event.roomId,
-        "socketId": userCache.socketId,
-        "playerId": userCache.id,
-      });
+    on<JoinToRoomEvent>((event, emit) {
+      emit(JoinToRoomState(
+        roomId: event.roomId,
+        roomName: event.roomName,
+      ));
     });
   }
 }
