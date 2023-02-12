@@ -31,12 +31,18 @@ class Room extends Equatable {
       ];
 }
 
-class RoomPlayerLobby {
+class RoomPlayerLobby extends Equatable {
   final String socketId;
   final String playerId;
 
-  RoomPlayerLobby({
+ const RoomPlayerLobby({
     required this.socketId,
     required this.playerId,
   });
+
+  @override
+  List<Object?> get props => [
+        socketId,
+        playerId,
+      ];
 }

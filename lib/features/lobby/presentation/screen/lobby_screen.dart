@@ -50,7 +50,7 @@ class LobbyScreen extends StatelessWidget {
             },
             child: Scaffold(
               appBar: _renderAppBar(blocContext, bloc),
-              body: _renderLobby(bloc),
+              body: _renderLobby(bloc, blocContext),
             ),
           );
         },
@@ -58,7 +58,8 @@ class LobbyScreen extends StatelessWidget {
     );
   }
 
-  Widget _renderLobby(LobbyBloc bloc) {
+  Widget _renderLobby(LobbyBloc bloc, BuildContext blocContext) {
+    final width = MediaQuery.of(blocContext).size.width;
     return BlocBuilder<LobbyBloc, LobbyState>(
       buildWhen: (previous, current) => current is RenderLobbyState,
       builder: (context, state) {
@@ -92,10 +93,14 @@ class LobbyScreen extends StatelessWidget {
                   child: Center(
                     child: Column(
                       children: [
+                        Icon(
+                          Icons.table_bar_rounded,
+                          size: width / 4 - width / 16,
+                          color: _renderColorByPlayer(room.player.length),
+                        ),
                         Text(room.roomName),
-                        Text(room.roomId),
-                        Text(room.dateTime.toString()),
-                        Text(room.player.length.toString()),
+                        const Spacer(),
+                        Text("players: ${room.player.length.toString()}"),
                       ],
                     ),
                   ),
@@ -107,6 +112,16 @@ class LobbyScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Color? _renderColorByPlayer(int playerAmount) {
+    if (playerAmount <= 4) {
+      return Colors.green[600];
+    } else if (playerAmount <= 6) {
+      return Colors.deepOrange[500];
+    } else {
+      return Colors.red[900];
+    }
   }
 
   AppBar _renderAppBar(BuildContext blocContext, LobbyBloc bloc) {
