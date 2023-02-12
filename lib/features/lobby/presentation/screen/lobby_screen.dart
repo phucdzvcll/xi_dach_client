@@ -72,10 +72,10 @@ class LobbyScreen extends StatelessWidget {
 
         return GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
+            crossAxisCount: 7,
             childAspectRatio: 1,
-            crossAxisSpacing: 7,
-            mainAxisSpacing: 7,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
           ),
           padding: const EdgeInsets.all(7.0),
           itemBuilder: (ctx, index) {
@@ -84,25 +84,20 @@ class LobbyScreen extends StatelessWidget {
               onTap: () {
                 bloc.add(JoinToRoom(roomId: room.roomId));
               },
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(7.0),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.table_bar_rounded,
-                          size: width / 4 - width / 16,
-                          color: _renderColorByPlayer(room.player.length),
-                        ),
-                        Text(room.roomName),
-                        const Spacer(),
-                        Text("players: ${room.player.length.toString()}"),
-                      ],
-                    ),
+              child: Padding(
+                padding: const EdgeInsets.all(7.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.table_bar_rounded,
+                        size: width / 14,
+                        color: _renderColorByPlayer(room.player.length),
+                      ),
+                      Text(room.roomName),
+                      const Spacer(),
+                      Text("players: ${room.player.length.toString()}"),
+                    ],
                   ),
                 ),
               ),
