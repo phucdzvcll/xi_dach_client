@@ -19,3 +19,5 @@ class RenderAdminState extends RoomState {
     required this.admin,
   });
 }
+
+class LeaveRoomSuccess extends RoomState {}

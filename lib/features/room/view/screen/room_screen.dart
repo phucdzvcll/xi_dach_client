@@ -28,13 +28,26 @@ class RoomScreen extends StatelessWidget {
       create: (context) => inject()..add(InitEvent(roomId: roomId)),
       child: Builder(
         builder: (context) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(
-                roomName,
+          return WillPopScope(
+            onWillPop: () async {
+              BlocProvider.of<RoomBloc>(context).add(LeaveRoomEvent());
+              return false;
+            },
+            child: BlocListener<RoomBloc, RoomState>(
+              listener: (context, state) {
+                if (state is LeaveRoomSuccess) {
+                  Navigator.pop(context);
+                }
+              },
+              child: Scaffold(
+                appBar: AppBar(
+                  title: Text(
+                    roomName,
+                  ),
+                ),
+                body: _renderBody(),
               ),
             ),
-            body: _renderBody(),
           );
         },
       ),
@@ -100,6 +113,7 @@ class RoomScreen extends StatelessWidget {
                     return GuessWidget(guess: player);
                   }
                 },
+                itemCount: players.length,
               )
             : const Center(
                 child: Text("Empty"),

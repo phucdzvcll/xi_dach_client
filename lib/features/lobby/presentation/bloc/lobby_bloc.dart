@@ -79,6 +79,7 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
         );
 
         appSocketIo.socket.on("joinToLobbySuccess", (data) {
+          log("joinToLobbySuccess $data");
           try {
             add(_RenderLobbyEvent(data: data));
           } catch (e) {

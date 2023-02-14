@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
 import 'package:xi_zack_client/common/socket/app_socket.dart';
 import 'package:xi_zack_client/common/user_cache.dart';
@@ -16,8 +14,10 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     required this.userCache,
   }) : super(RooInitState()) {
     final List<RoomPlayer> players = [];
+    late String roomId;
     RoomPlayer? admin;
     on<InitEvent>((event, emit) {
+      roomId = event.roomId;
       appSocketIo.socket.emit("joinRoom", {
         "roomId": event.roomId,
         "socketId": userCache.socketId,
@@ -32,7 +32,9 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           if (element.playerId == userCache.id) {
             element = element.copyWith(isMySelf: true);
           }
-          admin ??= element;
+          if (admin == null && element.isAdmin) {
+            admin = element;
+          }
         }
         socketPlayer.removeWhere((element) => element.isAdmin);
         players.addAll(socketPlayer);
@@ -47,6 +49,30 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         }
         add(_ReRenderChildPlayerEvent());
       });
+
+      appSocketIo.socket.on("userLeave", (data) {
+        var roomPlayer = RoomPlayer.fromJson(data);
+        if (roomPlayer.isAdmin) {
+          admin = null;
+          add(_ReRenderRoomEvent());
+        } else {
+          players.removeWhere(
+              (element) => element.playerId == roomPlayer.playerId);
+          add(_ReRenderChildPlayerEvent());
+        }
+      });
+    });
+
+    on<LeaveRoomEvent>((event, emit) {
+      appSocketIo.socket.emit("leaveRoom", {
+        "roomId": roomId,
+        "playerId": userCache.id,
+        "isAdmin": userCache.id == admin?.playerId,
+      });
+      appSocketIo.socket.off('joinRoomSuccess');
+      appSocketIo.socket.off('newPlayerJoined');
+      appSocketIo.socket.off('userLeave');
+      emit(LeaveRoomSuccess());
     });
 
     on<_ReRenderRoomEvent>((event, emit) {

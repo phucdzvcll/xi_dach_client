@@ -80,7 +80,7 @@ class LobbyScreen extends StatelessWidget {
 
         return GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 6,
+            crossAxisCount: 4 ,
             childAspectRatio: 1,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
@@ -89,6 +89,7 @@ class LobbyScreen extends StatelessWidget {
           itemBuilder: (ctx, index) {
             final room = rooms[index];
             return GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 bloc.add(JoinToRoomEvent(
                     roomId: room.roomId, roomName: room.roomName));

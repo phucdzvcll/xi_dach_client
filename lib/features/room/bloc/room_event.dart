@@ -7,3 +7,5 @@ class InitEvent extends RoomEvent {
     required this.roomId,
   });
 }
+
+class LeaveRoomEvent extends RoomEvent {}

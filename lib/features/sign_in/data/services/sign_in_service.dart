@@ -4,7 +4,7 @@ import 'package:xi_zack_client/features/sign_in/data/entities//user_response.dar
 
 part 'sign_in_service.g.dart';
 
-@RestApi(baseUrl: "http://192.168.1.99:8989")
+@RestApi(baseUrl: "http://35.240.138.79:8989")
 abstract class RestClient {
   factory RestClient(Dio dio) = _RestClient;
 

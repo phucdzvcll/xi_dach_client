@@ -13,7 +13,7 @@ class _RestClient implements RestClient {
     this._dio, {
     this.baseUrl,
   }) {
-    baseUrl ??= 'http://192.168.1.99:8989';
+    baseUrl ??= 'http://35.240.138.79:8989';
   }
 
   final Dio _dio;
@@ -27,7 +27,7 @@ class _RestClient implements RestClient {
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{"Content-Type":"application/json"};
+    final _headers = <String, dynamic>{};
     final _data = {
       'userName': userName,
       'password': password,
