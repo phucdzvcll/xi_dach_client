@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
 import 'package:xi_zack_client/features/room/view/widget/admin/admin_widget.dart';
@@ -28,14 +29,30 @@ class RoomScreen extends StatelessWidget {
       create: (context) => inject()..add(InitEvent(roomId: roomId)),
       child: Builder(
         builder: (context) {
+          var bloc = BlocProvider.of<RoomBloc>(context);
           return WillPopScope(
             onWillPop: () async {
-              BlocProvider.of<RoomBloc>(context).add(LeaveRoomEvent());
+              bloc.add(LeaveRoomEvent());
               return false;
             },
             child: BlocListener<RoomBloc, RoomState>(
               listener: (context, state) {
-                if (state is LeaveRoomSuccess) {
+                if (state is InitEvent || state is LoadingState) {
+                  EasyLoading.show(
+                    dismissOnTap: false,
+                    maskType: EasyLoadingMaskType.black,
+                  );
+                } else {
+                  EasyLoading.dismiss();
+                }
+
+                if (state is ErrorRoomState) {
+                  EasyLoading.showError(
+                    state.errMess,
+                    maskType: EasyLoadingMaskType.black,
+                    duration: const Duration(seconds: 3),
+                  );
+                } else if (state is LeaveRoomSuccess) {
                   Navigator.pop(context);
                 }
               },
@@ -74,7 +91,7 @@ class RoomScreen extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(CupertinoIcons.plus_app),
                   onPressed: () {
-                    //to to to be admin
+                    BlocProvider.of<RoomBloc>(context).add(ChangeAdminEvent());
                   },
                 ),
               );
