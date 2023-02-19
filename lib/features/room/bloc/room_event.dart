@@ -9,3 +9,5 @@ class InitEvent extends RoomEvent {
 }
 
 class LeaveRoomEvent extends RoomEvent {}
+
+class ChangeAdminEvent extends RoomEvent {}

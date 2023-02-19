@@ -17,6 +17,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     late String roomId;
     RoomPlayer? admin;
     on<InitEvent>((event, emit) {
+      userCache.isAdmin = false;
       roomId = event.roomId;
       appSocketIo.socket.emit("joinRoom", {
         "roomId": event.roomId,
@@ -34,6 +35,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           }
           if (admin == null && element.isAdmin) {
             admin = element;
+            userCache.isAdmin = admin!.playerId == userCache.id;
           }
         }
         socketPlayer.removeWhere((element) => element.isAdmin);
@@ -43,14 +45,17 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
 
       appSocketIo.socket.on("newPlayerJoined", (data) {
         var roomPlayer = RoomPlayer.fromJson(data);
-        players.add(roomPlayer);
         if (admin == null && roomPlayer.isAdmin) {
           admin = roomPlayer;
+          add(_ReRenderRoomEvent());
+        } else {
+          players.add(roomPlayer);
+          add(_ReRenderChildPlayerEvent());
         }
-        add(_ReRenderChildPlayerEvent());
       });
 
       appSocketIo.socket.on("userLeave", (data) {
+        userCache.isAdmin = false;
         var roomPlayer = RoomPlayer.fromJson(data);
         if (roomPlayer.isAdmin) {
           admin = null;
@@ -61,6 +66,22 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           add(_ReRenderChildPlayerEvent());
         }
       });
+
+      appSocketIo.socket.on("changeAdmin", (data) {
+        add(_ChangeAdminEvent(data: data));
+      });
+
+      appSocketIo.socket.on("changeAdminSuccess", (data) {
+        userCache.isAdmin = true;
+        admin = RoomPlayer(
+          socketId: userCache.socketId ?? appSocketIo.socket.id ?? "",
+          playerId: userCache.id ?? "",
+          isMySelf: true,
+          isAdmin: true,
+        );
+        players.removeWhere((element) => element.playerId == userCache.id);
+        add(_ReRenderRoomEvent());
+      });
     });
 
     on<LeaveRoomEvent>((event, emit) {
@@ -69,9 +90,11 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         "playerId": userCache.id,
         "isAdmin": userCache.id == admin?.playerId,
       });
-      appSocketIo.socket.off('joinRoomSuccess');
-      appSocketIo.socket.off('newPlayerJoined');
-      appSocketIo.socket.off('userLeave');
+      appSocketIo.socket.off("joinRoomSuccess");
+      appSocketIo.socket.off("newPlayerJoined");
+      appSocketIo.socket.off("userLeave");
+      appSocketIo.socket.off("changeAdmin");
+      appSocketIo.socket.off("changeAdminSuccess");
       emit(LeaveRoomSuccess());
     });
 
@@ -83,9 +106,47 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     on<_ReRenderChildPlayerEvent>((event, emit) {
       emit(RenderAllChildPlayerState(players: players));
     });
+
+    on<ChangeAdminEvent>(
+      (event, emit) {
+        emit(LoadingState());
+        if (admin == null) {
+          appSocketIo.socket.emit(
+              "changeAdmin", {"playerId": userCache.id, "roomId": roomId});
+        } else {
+          emit(ErrorRoomState(errMess: "The room has admin"));
+        }
+      },
+    );
+
+    on<_ChangeAdminEvent>((event, emit) {
+      emit(LoadingState());
+      final data = event.data;
+      final String? playerId = data["playerId"];
+
+      if (playerId != null && admin == null) {
+        try {
+          RoomPlayer player =
+              players.firstWhere((element) => element.playerId == playerId);
+          admin = player;
+          players.remove(player);
+          add(_ReRenderRoomEvent());
+        } catch (e) {
+          emit(ErrorRoomState(errMess: e.toString()));
+        }
+      }
+    });
   }
 }
 
 class _ReRenderRoomEvent extends RoomEvent {}
 
 class _ReRenderChildPlayerEvent extends RoomEvent {}
+
+class _ChangeAdminEvent extends RoomEvent {
+  final dynamic data;
+
+  _ChangeAdminEvent({
+    required this.data,
+  });
+}

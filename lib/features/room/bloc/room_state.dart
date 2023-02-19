@@ -12,6 +12,8 @@ class RenderAllChildPlayerState extends RoomState {
   });
 }
 
+class LoadingState extends RoomState {}
+
 class RenderAdminState extends RoomState {
   final RoomPlayer? admin;
 
@@ -21,3 +23,11 @@ class RenderAdminState extends RoomState {
 }
 
 class LeaveRoomSuccess extends RoomState {}
+
+class ErrorRoomState extends RoomState {
+  final String errMess;
+
+  ErrorRoomState({
+    required this.errMess,
+  });
+}
