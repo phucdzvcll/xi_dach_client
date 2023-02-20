@@ -26,9 +26,11 @@ class LeaveRoomSuccess extends RoomState {}
 
 class RenderReadyButtonState extends RoomState {
   final bool isReady;
+  final bool isAdmin;
 
   RenderReadyButtonState({
     required this.isReady,
+    required this.isAdmin,
   });
 }
 

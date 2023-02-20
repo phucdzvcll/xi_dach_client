@@ -4,6 +4,7 @@ import 'package:xi_zack_client/common/user_cache.dart';
 import 'package:xi_zack_client/features/room/bloc/room_event.dart';
 import 'package:xi_zack_client/features/room/bloc/room_state.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
+import 'package:collection/collection.dart';
 
 class RoomBloc extends Bloc<RoomEvent, RoomState> {
   final AppSocketIo appSocketIo;
@@ -13,10 +14,25 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     required this.appSocketIo,
     required this.userCache,
   }) : super(RooInitState()) {
+    bool isReady = false;
     final List<RoomPlayer> players = [];
     late String roomId;
     RoomPlayer? admin;
+
     on<InitEvent>((event, emit) {
+
+      void checkPlayerReady() {
+        if (userCache.isAdmin) {
+          if (players.isEmpty) {
+            isReady = false;
+          } else {
+            isReady =
+                players.firstWhereOrNull((element) => !element.isReady) == null;
+          }
+          add(_RenderReadyStateEvent(isReady: isReady));
+        }
+      }
+
       userCache.isAdmin = false;
       roomId = event.roomId;
       appSocketIo.socket.emit("joinRoom", {
@@ -42,6 +58,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         socketPlayer.removeWhere((element) => element.isAdmin);
         players.addAll(socketPlayer);
         add(_ReRenderRoomEvent());
+        add(_RenderReadyStateEvent(isReady: isReady));
       });
 
       appSocketIo.socket.on("newPlayerJoined", (data) {
@@ -53,10 +70,10 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           players.add(roomPlayer);
           add(_ReRenderChildPlayerEvent());
         }
+        checkPlayerReady();
       });
 
       appSocketIo.socket.on("userLeave", (data) {
-        userCache.isAdmin = false;
         var roomPlayer = RoomPlayer.fromJson(data);
         if (roomPlayer.isAdmin) {
           admin = null;
@@ -66,6 +83,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
               (element) => element.playerId == roomPlayer.playerId);
           add(_ReRenderChildPlayerEvent());
         }
+        checkPlayerReady();
       });
 
       appSocketIo.socket.on("changeAdmin", (data) {
@@ -81,6 +99,8 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           }
         }
 
+        checkPlayerReady();
+
         add(_ReRenderChildPlayerEvent());
       });
 
@@ -94,6 +114,10 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           }
         }
         add(_ReRenderChildPlayerEvent());
+        if (userCache.isAdmin) {
+          isReady = false;
+          add(_RenderReadyStateEvent(isReady: isReady));
+        }
       });
 
       appSocketIo.socket.on("changeAdminSuccess", (data) {
@@ -105,7 +129,10 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           isAdmin: true,
         );
         players.removeWhere((element) => element.playerId == userCache.id);
+        isReady =
+            players.firstWhereOrNull((element) => !element.isReady) == null;
         add(_ReRenderRoomEvent());
+        add(_RenderReadyStateEvent(isReady: isReady));
       });
     });
 
@@ -159,6 +186,8 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     });
 
     on<ReadyEvent>((event, emit) {
+      isReady = true;
+      add(_RenderReadyStateEvent(isReady: isReady));
       appSocketIo.socket.emit("playerReady", {
         "playerId": userCache.id,
         "roomId": roomId,
@@ -166,13 +195,22 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     });
 
     on<CancelReadyEvent>((event, emit) {
+      isReady = false;
+      add(_RenderReadyStateEvent(isReady: isReady));
       appSocketIo.socket.emit("playerCancelReady", {
         "playerId": userCache.id,
         "roomId": roomId,
       });
     });
+
+    on<StartGameEvent>((event, emit) {
+      // todo
+    });
     on<_RenderReadyStateEvent>((event, emit) {
-      emit(RenderReadyButtonState(isReady: event.isReady));
+      emit(RenderReadyButtonState(
+        isReady: isReady && players.isNotEmpty,
+        isAdmin: userCache.isAdmin,
+      ));
     });
   }
 

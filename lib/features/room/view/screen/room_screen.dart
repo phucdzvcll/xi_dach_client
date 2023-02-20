@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
-import 'package:xi_zack_client/features/room/view/widget/admin/admin_widget.dart';
 import 'package:xi_zack_client/features/room/view/widget/guess/guess_widget.dart';
 import 'package:xi_zack_client/features/room/view/widget/player/player_widget.dart';
 
@@ -83,9 +82,11 @@ class RoomScreen extends StatelessWidget {
             }
 
             if (admin != null) {
-              return AdminWidget(
-                admin: admin,
-              );
+              return admin.isMySelf
+                  ? PlayerWidget(player: admin)
+                  : GuessWidget(
+                      guess: admin,
+                    );
             } else {
               return Center(
                 child: IconButton(
@@ -113,14 +114,23 @@ class RoomScreen extends StatelessWidget {
         buildWhen: (previous, current) => current is RenderReadyButtonState,
         builder: (context, state) {
           bool isReady = false;
+          bool isAdmin = false;
           if (state is RenderReadyButtonState) {
             isReady = state.isReady;
+            isAdmin = state.isAdmin;
           }
           return ElevatedButton(
-            onPressed: () {
-              bloc.add(isReady ? CancelReadyEvent() : ReadyEvent());
-            },
-            child: Text(!isReady ? "Start Game" : "Cancel"),
+            onPressed: (isAdmin && !isReady)
+                ? null
+                : () {
+                    bloc.add(isReady
+                        ? isAdmin
+                            ? StartGameEvent()
+                            : CancelReadyEvent()
+                        : ReadyEvent());
+                  },
+            child:
+                isAdmin ? const Text("Start") : Text(!isReady ? "Ready" : "Cancel"),
           );
         },
       ),
