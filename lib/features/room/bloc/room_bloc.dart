@@ -20,7 +20,6 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     RoomPlayer? admin;
 
     on<InitEvent>((event, emit) {
-
       void checkPlayerReady() {
         if (userCache.isAdmin) {
           if (players.isEmpty) {
@@ -34,6 +33,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
       }
 
       userCache.isAdmin = false;
+      userCache.index = null;
       roomId = event.roomId;
       appSocketIo.socket.emit("joinRoom", {
         "roomId": event.roomId,
@@ -49,13 +49,16 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         for (int i = 0; i < socketPlayer.length; i++) {
           if (socketPlayer[i].playerId == userCache.id) {
             socketPlayer[i] = socketPlayer[i].copyWith(isMySelf: true);
+            userCache.index = socketPlayer[i].index;
           }
           if (admin == null && socketPlayer[i].isAdmin) {
             admin = socketPlayer[i];
             userCache.isAdmin = admin!.playerId == userCache.id;
+            userCache.index = 0;
           }
         }
         socketPlayer.removeWhere((element) => element.isAdmin);
+        socketPlayer.sort((a, b) => a.index.compareTo(b.index),);
         players.addAll(socketPlayer);
         add(_ReRenderRoomEvent());
         add(_RenderReadyStateEvent(isReady: isReady));
@@ -70,6 +73,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           players.add(roomPlayer);
           add(_ReRenderChildPlayerEvent());
         }
+        players.sort((a, b) => a.index.compareTo(b.index),);
         checkPlayerReady();
       });
 
@@ -127,6 +131,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           playerId: userCache.id ?? "",
           isMySelf: true,
           isAdmin: true,
+          index: userCache.index ?? -1,
         );
         players.removeWhere((element) => element.playerId == userCache.id);
         isReady =

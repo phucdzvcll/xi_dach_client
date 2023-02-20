@@ -6,6 +6,7 @@ class RoomPlayer extends Equatable {
   final bool isMySelf;
   final bool isAdmin;
   final bool isReady;
+  final int index;
 
   @override
   List<Object?> get props => [
@@ -14,6 +15,7 @@ class RoomPlayer extends Equatable {
         isAdmin,
         isAdmin,
         isReady,
+        index,
       ];
 
   factory RoomPlayer.fromJson(
@@ -25,6 +27,7 @@ class RoomPlayer extends Equatable {
       socketId: json["socketId"] ?? "",
       isMySelf: isMySelf,
       isAdmin: json["isAdmin"] ?? false,
+      index: json["index"] ?? -1,
       isReady: false,
     );
   }
@@ -34,6 +37,7 @@ class RoomPlayer extends Equatable {
     required this.playerId,
     required this.isMySelf,
     required this.isAdmin,
+    required this.index,
     this.isReady = false,
   });
 
@@ -43,6 +47,7 @@ class RoomPlayer extends Equatable {
     bool? isMySelf,
     bool? isAdmin,
     bool? isReady,
+    int? index,
   }) {
     return RoomPlayer(
       socketId: socketId ?? this.socketId,
@@ -50,6 +55,7 @@ class RoomPlayer extends Equatable {
       isMySelf: isMySelf ?? this.isMySelf,
       isAdmin: isAdmin ?? this.isAdmin,
       isReady: isReady ?? this.isReady,
+      index: index ?? this.index,
     );
   }
 }

@@ -6,7 +6,7 @@ import 'package:xi_zack_client/common/base/extensions/extensions.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
 import 'package:xi_zack_client/features/room/view/widget/guess/guess_widget.dart';
 import 'package:xi_zack_client/features/room/view/widget/player/player_widget.dart';
-
+import 'package:collection/collection.dart';
 import '../../bloc/room_bloc.dart';
 import '../../bloc/room_event.dart';
 import '../../bloc/room_state.dart';
@@ -129,8 +129,9 @@ class RoomScreen extends StatelessWidget {
                             : CancelReadyEvent()
                         : ReadyEvent());
                   },
-            child:
-                isAdmin ? const Text("Start") : Text(!isReady ? "Ready" : "Cancel"),
+            child: isAdmin
+                ? const Text("Start")
+                : Text(!isReady ? "Ready" : "Cancel"),
           );
         },
       ),
@@ -155,14 +156,29 @@ class RoomScreen extends StatelessWidget {
                   childAspectRatio: 1,
                 ),
                 itemBuilder: (context, index) {
-                  RoomPlayer player = players[index];
-                  if (player.isMySelf) {
-                    return PlayerWidget(player: player);
+                  final player = players
+                      .firstWhereOrNull((element) => (element.index - 1) == index);
+
+                  if (player != null) {
+                    if (player.isMySelf) {
+                      return PlayerWidget(
+                        player: player,
+                      );
+                    } else {
+                      return GuessWidget(
+                        guess: player,
+                      );
+                    }
                   } else {
-                    return GuessWidget(guess: player);
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blueAccent),
+                      ),
+                      child: const SizedBox(),
+                    );
                   }
                 },
-                itemCount: players.length,
+                itemCount: 8,
               )
             : const Center(
                 child: Text("Empty"),

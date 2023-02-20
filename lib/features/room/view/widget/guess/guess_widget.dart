@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
+import 'package:xi_zack_client/features/room/view/widget/guess/bloc/guess_bloc.dart';
 
 class GuessWidget extends StatelessWidget {
   const GuessWidget({
@@ -10,12 +12,30 @@ class GuessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Icon(Icons.person),
-        Text(guess.playerId),
-        Text(guess.isReady.toString()),
-      ],
+    return BlocProvider<GuessBloc>(
+      create: (context) => GuessBloc()..add(GuessInitEvent()),
+      child: Builder(
+        builder: (context) {
+          return Column(
+            children: [
+              const Icon(Icons.person),
+              Text(guess.playerId),
+              Text(guess.isReady.toString()),
+              BlocBuilder<GuessBloc, GuessState>(
+                buildWhen: (previous, current) => current is GuessCount,
+                builder: (context, state) {
+                  int count = 0;
+                  if (state is GuessCount) {
+                    count = state.count;
+                  }
+
+                  return Text(count.toString());
+                },
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

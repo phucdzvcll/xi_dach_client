@@ -3,6 +3,7 @@ class UserCache {
   String? id;
   String? socketId;
   bool isAdmin = false;
+  int? index;
 
   UserCache({
     this.userName,
