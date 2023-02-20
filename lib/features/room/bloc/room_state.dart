@@ -24,6 +24,14 @@ class RenderAdminState extends RoomState {
 
 class LeaveRoomSuccess extends RoomState {}
 
+class RenderReadyButtonState extends RoomState {
+  final bool isReady;
+
+  RenderReadyButtonState({
+    required this.isReady,
+  });
+}
+
 class ErrorRoomState extends RoomState {
   final String errMess;
 

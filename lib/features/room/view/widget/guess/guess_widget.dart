@@ -14,6 +14,7 @@ class GuessWidget extends StatelessWidget {
       children: [
         const Icon(Icons.person),
         Text(guess.playerId),
+        Text(guess.isReady.toString()),
       ],
     );
   }

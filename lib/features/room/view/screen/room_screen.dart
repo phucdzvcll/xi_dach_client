@@ -62,7 +62,7 @@ class RoomScreen extends StatelessWidget {
                     roomName,
                   ),
                 ),
-                body: _renderBody(),
+                body: _renderBody(bloc),
               ),
             ),
           );
@@ -71,7 +71,7 @@ class RoomScreen extends StatelessWidget {
     );
   }
 
-  Widget _renderBody() {
+  Widget _renderBody(RoomBloc bloc) {
     return Column(
       children: [
         BlocBuilder<RoomBloc, RoomState>(
@@ -91,7 +91,7 @@ class RoomScreen extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(CupertinoIcons.plus_app),
                   onPressed: () {
-                    BlocProvider.of<RoomBloc>(context).add(ChangeAdminEvent());
+                    bloc.add(ChangeAdminEvent());
                   },
                 ),
               );
@@ -101,7 +101,29 @@ class RoomScreen extends StatelessWidget {
         Expanded(
           child: _renderAllChild(),
         ),
+        _renderReadyStateWidget(bloc)
       ],
+    );
+  }
+
+  Padding _renderReadyStateWidget(RoomBloc bloc) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: BlocBuilder<RoomBloc, RoomState>(
+        buildWhen: (previous, current) => current is RenderReadyButtonState,
+        builder: (context, state) {
+          bool isReady = false;
+          if (state is RenderReadyButtonState) {
+            isReady = state.isReady;
+          }
+          return ElevatedButton(
+            onPressed: () {
+              bloc.add(isReady ? CancelReadyEvent() : ReadyEvent());
+            },
+            child: Text(!isReady ? "Start Game" : "Cancel"),
+          );
+        },
+      ),
     );
   }
 

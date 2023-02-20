@@ -14,6 +14,7 @@ class PlayerWidget extends StatelessWidget {
       children: [
         const Icon(Icons.person),
         Text(player.playerId),
+        Text(player.isReady.toString()),
       ],
     );
   }

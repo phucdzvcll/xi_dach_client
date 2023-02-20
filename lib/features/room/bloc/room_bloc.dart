@@ -29,12 +29,13 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         final List<RoomPlayer> socketPlayer =
             (data as List).map((e) => RoomPlayer.fromJson(e)).toList();
         players.clear();
-        for (var element in socketPlayer) {
-          if (element.playerId == userCache.id) {
-            element = element.copyWith(isMySelf: true);
+
+        for (int i = 0; i < socketPlayer.length; i++) {
+          if (socketPlayer[i].playerId == userCache.id) {
+            socketPlayer[i] = socketPlayer[i].copyWith(isMySelf: true);
           }
-          if (admin == null && element.isAdmin) {
-            admin = element;
+          if (admin == null && socketPlayer[i].isAdmin) {
+            admin = socketPlayer[i];
             userCache.isAdmin = admin!.playerId == userCache.id;
           }
         }
@@ -70,6 +71,30 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
       appSocketIo.socket.on("changeAdmin", (data) {
         add(_ChangeAdminEvent(data: data));
       });
+      appSocketIo.socket.on("playerReady", (data) {
+        for (int i = 0; i < players.length; i++) {
+          if (players[i].playerId == data['playerId']) {
+            players[i] = players[i].copyWith(isReady: true);
+            if (players[i].isMySelf) {
+              add(_RenderReadyStateEvent(isReady: players[i].isReady));
+            }
+          }
+        }
+
+        add(_ReRenderChildPlayerEvent());
+      });
+
+      appSocketIo.socket.on("playerCancelReady", (data) {
+        for (int i = 0; i < players.length; i++) {
+          if (players[i].playerId == data['playerId']) {
+            players[i] = players[i].copyWith(isReady: false);
+            if (players[i].isMySelf) {
+              add(_RenderReadyStateEvent(isReady: players[i].isReady));
+            }
+          }
+        }
+        add(_ReRenderChildPlayerEvent());
+      });
 
       appSocketIo.socket.on("changeAdminSuccess", (data) {
         userCache.isAdmin = true;
@@ -90,11 +115,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         "playerId": userCache.id,
         "isAdmin": userCache.id == admin?.playerId,
       });
-      appSocketIo.socket.off("joinRoomSuccess");
-      appSocketIo.socket.off("newPlayerJoined");
-      appSocketIo.socket.off("userLeave");
-      appSocketIo.socket.off("changeAdmin");
-      appSocketIo.socket.off("changeAdminSuccess");
+      _dispose();
       emit(LeaveRoomSuccess());
     });
 
@@ -136,10 +157,45 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         }
       }
     });
+
+    on<ReadyEvent>((event, emit) {
+      appSocketIo.socket.emit("playerReady", {
+        "playerId": userCache.id,
+        "roomId": roomId,
+      });
+    });
+
+    on<CancelReadyEvent>((event, emit) {
+      appSocketIo.socket.emit("playerCancelReady", {
+        "playerId": userCache.id,
+        "roomId": roomId,
+      });
+    });
+    on<_RenderReadyStateEvent>((event, emit) {
+      emit(RenderReadyButtonState(isReady: event.isReady));
+    });
+  }
+
+  void _dispose() {
+    appSocketIo.socket.off("joinRoomSuccess");
+    appSocketIo.socket.off("newPlayerJoined");
+    appSocketIo.socket.off("userLeave");
+    appSocketIo.socket.off("changeAdmin");
+    appSocketIo.socket.off("changeAdminSuccess");
+    appSocketIo.socket.off("playerReady");
+    appSocketIo.socket.off("playerCancelReady");
   }
 }
 
 class _ReRenderRoomEvent extends RoomEvent {}
+
+class _RenderReadyStateEvent extends RoomEvent {
+  final bool isReady;
+
+  _RenderReadyStateEvent({
+    required this.isReady,
+  });
+}
 
 class _ReRenderChildPlayerEvent extends RoomEvent {}
 
