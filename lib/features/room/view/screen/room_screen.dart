@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
@@ -56,6 +57,7 @@ class RoomScreen extends StatelessWidget {
                 }
               },
               child: Scaffold(
+                backgroundColor: Colors.green[400],
                 appBar: AppBar(
                   title: Text(
                     roomName,
@@ -76,7 +78,7 @@ class RoomScreen extends StatelessWidget {
         BlocBuilder<RoomBloc, RoomState>(
           buildWhen: (previous, current) => current is RenderAdminState,
           builder: (context, state) {
-            RoomPlayer? admin;
+            Player? admin;
             if (state is RenderAdminState) {
               admin = state.admin;
             }
@@ -119,22 +121,72 @@ class RoomScreen extends StatelessWidget {
             isReady = state.isReady;
             isAdmin = state.isAdmin;
           }
-          return ElevatedButton(
-            onPressed: (isAdmin && !isReady)
-                ? null
-                : () {
-                    bloc.add(isReady
-                        ? isAdmin
-                            ? StartGameEvent()
-                            : CancelReadyEvent()
-                        : ReadyEvent());
+          return Column(
+            children: [
+              _renderReadyButton(isAdmin, isReady, bloc),
+              Visibility(
+                visible: !isAdmin && !isReady,
+                child: ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          final TextEditingController controller =
+                              TextEditingController();
+                          return _renderPetDialog(controller, context);
+                        }).then((value) {
+                      if (value is int) {
+                        bloc.add(PetEvent(pet: value));
+                      }
+                    });
                   },
-            child: isAdmin
-                ? const Text("Start")
-                : Text(!isReady ? "Ready" : "Cancel"),
+                  child: const Text("Pet"),
+                ),
+              )
+            ],
           );
         },
       ),
+    );
+  }
+
+  AlertDialog _renderPetDialog(
+      TextEditingController controller, BuildContext context) {
+    return AlertDialog(
+      title: const Text("Enter The Pet Number"),
+      content: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly
+        ],
+        decoration: const InputDecoration(hintText: "Pet"),
+      ),
+      actions: <Widget>[
+        ElevatedButton(
+          child: const Text("OK"),
+          onPressed: () {
+            int number = int.tryParse(controller.text) ?? 0;
+            Navigator.of(context).pop(number <= 0 ? null : number);
+          },
+        ),
+      ],
+    );
+  }
+
+  ElevatedButton _renderReadyButton(bool isAdmin, bool isReady, RoomBloc bloc) {
+    return ElevatedButton(
+      onPressed: (isAdmin && !isReady)
+          ? null
+          : () {
+              bloc.add(isReady
+                  ? isAdmin
+                      ? StartGameEvent()
+                      : CancelReadyEvent()
+                  : ReadyEvent());
+            },
+      child:
+          isAdmin ? const Text("Start") : Text(!isReady ? "Ready" : "Cancel"),
     );
   }
 
@@ -142,7 +194,7 @@ class RoomScreen extends StatelessWidget {
     return BlocBuilder<RoomBloc, RoomState>(
       buildWhen: (previous, current) => current is RenderAllChildPlayerState,
       builder: (context, state) {
-        final List<RoomPlayer> players = [];
+        final List<Player> players = [];
         if (state is RenderAllChildPlayerState) {
           players.clear();
           players.addAll(state.players);
@@ -156,8 +208,8 @@ class RoomScreen extends StatelessWidget {
                   childAspectRatio: 1,
                 ),
                 itemBuilder: (context, index) {
-                  final player = players
-                      .firstWhereOrNull((element) => (element.index - 1) == index);
+                  final player = players.firstWhereOrNull(
+                      (element) => (element.index - 1) == index);
 
                   if (player != null) {
                     if (player.isMySelf) {

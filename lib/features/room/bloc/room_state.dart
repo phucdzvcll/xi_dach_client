@@ -5,7 +5,7 @@ abstract class RoomState {}
 class RooInitState extends RoomState {}
 
 class RenderAllChildPlayerState extends RoomState {
-  final List<RoomPlayer> players;
+  final List<Player> players;
 
   RenderAllChildPlayerState({
     required this.players,
@@ -15,7 +15,7 @@ class RenderAllChildPlayerState extends RoomState {
 class LoadingState extends RoomState {}
 
 class RenderAdminState extends RoomState {
-  final RoomPlayer? admin;
+  final Player? admin;
 
   RenderAdminState({
     required this.admin,

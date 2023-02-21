@@ -1,8 +1,12 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
+import 'package:xi_zack_client/common/constante.dart';
 import 'package:xi_zack_client/common/socket/app_socket.dart';
 import 'package:xi_zack_client/common/user_cache.dart';
 import 'package:xi_zack_client/features/room/bloc/room_event.dart';
 import 'package:xi_zack_client/features/room/bloc/room_state.dart';
+import 'package:xi_zack_client/features/room/models/game.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
 import 'package:collection/collection.dart';
 
@@ -15,10 +19,10 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     required this.userCache,
   }) : super(RooInitState()) {
     bool isReady = false;
-    final List<RoomPlayer> players = [];
+    final List<Player> players = [];
     late String roomId;
-    RoomPlayer? admin;
-
+    Player? admin;
+    String? gameId;
     on<InitEvent>((event, emit) {
       void checkPlayerReady() {
         if (userCache.isAdmin) {
@@ -42,8 +46,8 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
       });
 
       appSocketIo.socket.on("joinRoomSuccess", (data) {
-        final List<RoomPlayer> socketPlayer =
-            (data as List).map((e) => RoomPlayer.fromJson(e)).toList();
+        final List<Player> socketPlayer =
+            (data as List).map((e) => Player.fromJson(e)).toList();
         players.clear();
 
         for (int i = 0; i < socketPlayer.length; i++) {
@@ -58,14 +62,16 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           }
         }
         socketPlayer.removeWhere((element) => element.isAdmin);
-        socketPlayer.sort((a, b) => a.index.compareTo(b.index),);
+        socketPlayer.sort(
+          (a, b) => a.index.compareTo(b.index),
+        );
         players.addAll(socketPlayer);
         add(_ReRenderRoomEvent());
         add(_RenderReadyStateEvent(isReady: isReady));
       });
 
       appSocketIo.socket.on("newPlayerJoined", (data) {
-        var roomPlayer = RoomPlayer.fromJson(data);
+        var roomPlayer = Player.fromJson(data);
         if (admin == null && roomPlayer.isAdmin) {
           admin = roomPlayer;
           add(_ReRenderRoomEvent());
@@ -73,12 +79,14 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           players.add(roomPlayer);
           add(_ReRenderChildPlayerEvent());
         }
-        players.sort((a, b) => a.index.compareTo(b.index),);
+        players.sort(
+          (a, b) => a.index.compareTo(b.index),
+        );
         checkPlayerReady();
       });
 
       appSocketIo.socket.on("userLeave", (data) {
-        var roomPlayer = RoomPlayer.fromJson(data);
+        var roomPlayer = Player.fromJson(data);
         if (roomPlayer.isAdmin) {
           admin = null;
           add(_ReRenderRoomEvent());
@@ -126,18 +134,41 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
 
       appSocketIo.socket.on("changeAdminSuccess", (data) {
         userCache.isAdmin = true;
-        admin = RoomPlayer(
+        admin = Player(
           socketId: userCache.socketId ?? appSocketIo.socket.id ?? "",
           playerId: userCache.id ?? "",
           isMySelf: true,
           isAdmin: true,
           index: userCache.index ?? -1,
+          cards: List<PokerCard>.from([]),
         );
         players.removeWhere((element) => element.playerId == userCache.id);
         isReady =
             players.firstWhereOrNull((element) => !element.isReady) == null;
         add(_ReRenderRoomEvent());
         add(_RenderReadyStateEvent(isReady: isReady));
+      });
+
+      appSocketIo.socket.on("newGame", (data) {
+        add(_RenderGameEvent(data: data));
+      });
+
+      appSocketIo.socket.on("playerPet", (data) {
+        try {
+          String playerId = data["playerId"];
+          int playerPet = data["pet"];
+
+          for (int i = 0; i < players.length; i++) {
+            if (players[i].playerId == playerId) {
+              players[i] = players[i].copyWith(pet: playerPet);
+              break;
+            }
+          }
+
+          add(_ReRenderChildPlayerEvent());
+        } catch (e) {
+          //todo
+        }
       });
     });
 
@@ -179,7 +210,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
 
       if (playerId != null && admin == null) {
         try {
-          RoomPlayer player =
+          Player player =
               players.firstWhere((element) => element.playerId == playerId);
           admin = player;
           players.remove(player);
@@ -209,13 +240,47 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     });
 
     on<StartGameEvent>((event, emit) {
-      // todo
+      appSocketIo.socket.emit("startNewGame", {
+        "roomId": roomId,
+      });
     });
+
     on<_RenderReadyStateEvent>((event, emit) {
       emit(RenderReadyButtonState(
         isReady: isReady && players.isNotEmpty,
         isAdmin: userCache.isAdmin,
       ));
+    });
+
+    on<_RenderGameEvent>((event, emit) {
+      try {
+        Game game = Game.fromJson(event.data);
+
+        gameId = game.gameId;
+
+        for (var playerDetail in game.playerDetail) {
+          Player? player = players
+              .firstWhereOrNull((p) => p.playerId == playerDetail.playerId);
+
+          if (player != null) {
+            player.cards.addAll(playerDetail.cards);
+          } else if (admin?.playerId == playerDetail.playerId) {
+            admin?.cards.addAll(playerDetail.cards);
+          }
+        }
+        add(_ReRenderRoomEvent());
+      } catch (e) {
+        log(e.toString());
+        emit(ErrorRoomState(errMess: e.toString()));
+      }
+    });
+
+    on<PetEvent>((event, emit) {
+      appSocketIo.socket.emit("playerPet", {
+        "roomId": roomId,
+        "pet": event.pet,
+        "playerId": userCache.id,
+      });
     });
   }
 
@@ -227,6 +292,8 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     appSocketIo.socket.off("changeAdminSuccess");
     appSocketIo.socket.off("playerReady");
     appSocketIo.socket.off("playerCancelReady");
+    appSocketIo.socket.off("newGame");
+    appSocketIo.socket.off("playerPet");
   }
 }
 
@@ -246,6 +313,14 @@ class _ChangeAdminEvent extends RoomEvent {
   final dynamic data;
 
   _ChangeAdminEvent({
+    required this.data,
+  });
+}
+
+class _RenderGameEvent extends RoomEvent {
+  final dynamic data;
+
+  _RenderGameEvent({
     required this.data,
   });
 }

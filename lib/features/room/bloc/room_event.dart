@@ -17,3 +17,11 @@ class StartGameEvent extends RoomEvent {}
 class ReadyEvent extends RoomEvent {}
 
 class CancelReadyEvent extends RoomEvent {}
+
+class PetEvent extends RoomEvent {
+  final int pet;
+
+  PetEvent({
+    required this.pet,
+  });
+}
