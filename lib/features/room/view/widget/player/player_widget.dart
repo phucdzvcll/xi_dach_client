@@ -13,22 +13,17 @@ class PlayerWidget extends StatefulWidget {
   State<PlayerWidget> createState() => _PlayerWidgetState();
 }
 
-class _PlayerWidgetState extends State<PlayerWidget>
-    with TickerProviderStateMixin {
-  late AnimationController cardController;
-  List<Widget> cards = [];
+class _PlayerWidgetState extends State<PlayerWidget> {
+  bool isOverview = false;
 
   @override
   void initState() {
-    cardController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    double cardWidths = widget.player.cards.length * 50;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -38,10 +33,26 @@ class _PlayerWidgetState extends State<PlayerWidget>
         Text(widget.player.pet.toString()),
         Visibility(
           visible: widget.player.cards.isNotEmpty,
-          child: Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
-            children: _renderCard(),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: (){
+              setState(() {
+                isOverview = !isOverview;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              color: Colors.red,
+              width: isOverview ?  cardWidths * 2 : widget.player.cards.length * 20 + 100,
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 500),
+                alignment: isOverview ? Alignment.centerLeft :Alignment.center,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: _renderCard(),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -50,31 +61,22 @@ class _PlayerWidgetState extends State<PlayerWidget>
 
   List<Widget> _renderCard() {
     final List<Widget> widgets = [];
-    for (var i = 0; i < widget.player.cards.length; i++) {
-      // double left = i.toDouble() * 20.0;
+    for (var i = 0; i < 5; i++) {
+      double? left = i == 0
+          ? null
+          : isOverview
+              ? i.toDouble() * 40
+              : i.toDouble() * 20.0;
       widgets.add(
-        AnimatedBuilder(
-          animation: cardController,
-          child: GestureDetector(
-            child: AppUtils.renderCard(widget.player.cards[i],
-                width: 50, height: 100),
-            onTap: () {
-              cardController.isCompleted
-                  ? cardController.reverse()
-                  : cardController.forward();
-            },
-          ),
-          builder: (ctx, child) {
-            return Positioned(
-              left: (cardController.value < 1.0
-                  ? null
-                  : 25.0 * i * 2),
-              child: child!,
-            );
-          },
+        AnimatedPositioned(
+          left: left,
+          duration: const Duration(milliseconds: 250),
+          child: AppUtils.renderCard(widget.player.cards[0],
+              width: 50, height: 100),
         ),
       );
     }
     return widgets;
   }
 }
+

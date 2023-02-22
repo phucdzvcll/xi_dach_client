@@ -34,7 +34,7 @@ class GuessWidget extends StatelessWidget {
 
   List<Widget> _renderCard() {
     final List<Positioned> widgets = [];
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < guess.cards.length; i++) {
       double left = i.toDouble() * 20.0;
       widgets.add(
         Positioned(
