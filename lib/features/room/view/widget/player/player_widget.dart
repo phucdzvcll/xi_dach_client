@@ -23,7 +23,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    double cardWidths = widget.player.cards.length * 50;
+    double cardWidths = widget.player.cards.length * 40;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -35,7 +35,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           visible: widget.player.cards.isNotEmpty,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: (){
+            onTap: () {
               setState(() {
                 isOverview = !isOverview;
               });
@@ -43,10 +43,12 @@ class _PlayerWidgetState extends State<PlayerWidget> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
               color: Colors.red,
-              width: isOverview ?  cardWidths * 2 : widget.player.cards.length * 20 + 100,
+              width: isOverview
+                  ? cardWidths
+                  : widget.player.cards.length * 20 + 30 ,
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 500),
-                alignment: isOverview ? Alignment.centerLeft :Alignment.center,
+                alignment: isOverview ? Alignment.centerLeft : Alignment.center,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: _renderCard(),
@@ -61,7 +63,8 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   List<Widget> _renderCard() {
     final List<Widget> widgets = [];
-    for (var i = 0; i < 5; i++) {
+    var cards = widget.player.cards;
+    for (var i = 0; i < cards.length; i++) {
       double? left = i == 0
           ? null
           : isOverview
@@ -71,12 +74,10 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         AnimatedPositioned(
           left: left,
           duration: const Duration(milliseconds: 250),
-          child: AppUtils.renderCard(widget.player.cards[0],
-              width: 50, height: 100),
+          child: AppUtils.renderCard(cards[i], width: 50, height: 100),
         ),
       );
     }
     return widgets;
   }
 }
-

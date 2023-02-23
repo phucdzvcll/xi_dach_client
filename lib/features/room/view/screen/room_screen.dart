@@ -109,45 +109,116 @@ class RoomScreen extends StatelessWidget {
     );
   }
 
-  Padding _renderReadyStateWidget(RoomBloc bloc) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: BlocBuilder<RoomBloc, RoomState>(
-        buildWhen: (previous, current) => current is RenderReadyButtonState,
-        builder: (context, state) {
-          bool isReady = false;
-          bool isAdmin = false;
-          if (state is RenderReadyButtonState) {
-            isReady = state.isReady;
-            isAdmin = state.isAdmin;
-          }
-          return Column(
-            children: [
-              _renderReadyButton(isAdmin, isReady, bloc),
+  Widget _renderReadyStateWidget(RoomBloc bloc) {
+    return BlocBuilder<RoomBloc, RoomState>(
+      buildWhen: (previous, current) => current is RenderActionButtonState,
+      builder: (ctx, state) {
+        bool isAdmin = false;
+        ActionButtonState actionButtonState = ActionButtonState.disable;
+        if (state is RenderActionButtonState) {
+          isAdmin = state.isAdmin;
+          actionButtonState = state.buttonState;
+        }
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (state is RenderActionButtonState) ...[
               Visibility(
-                visible: !isAdmin && !isReady,
-                child: ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (ctx) {
-                          final TextEditingController controller =
-                              TextEditingController();
-                          return _renderPetDialog(controller, context);
-                        }).then((value) {
-                      if (value is int) {
-                        bloc.add(PetEvent(pet: value));
-                      }
-                    });
-                  },
-                  child: const Text("Pet"),
+                visible: isAdmin,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: _renderAdminButton(state, bloc),
                 ),
-              )
+              ),
+              Visibility(
+                visible: !isAdmin &&
+                    (ActionButtonState.ready == actionButtonState ||
+                        ActionButtonState.unReady == actionButtonState),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (ActionButtonState.unReady == actionButtonState) {
+                        bloc.add(ReadyEvent());
+                      } else {
+                        bloc.add(CancelReadyEvent());
+                      }
+                    },
+                    child: Text(
+                      _actionButtonTitle(actionButtonState),
+                    ),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible:
+                    !isAdmin && actionButtonState == ActionButtonState.unReady,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: _renderPetButton(ctx, bloc),
+                ),
+              ),
+            ] else ...[
+              const SizedBox.shrink(),
             ],
-          );
-        },
-      ),
+          ],
+        );
+      },
     );
+  }
+
+  ElevatedButton _renderPetButton(BuildContext ctx, RoomBloc bloc) {
+    return ElevatedButton(
+      onPressed: () {
+        showDialog(
+            context: ctx,
+            builder: (ctx) {
+              TextEditingController controller = TextEditingController();
+              return _renderPetDialog(controller, ctx);
+            }).then((value) {
+          if (value is int) {
+            bloc.add(PetEvent(pet: value));
+          }
+        });
+      },
+      child: Text("Pet"),
+    );
+  }
+
+  Widget _renderAdminButton(
+    RenderActionButtonState state,
+    RoomBloc bloc,
+  ) {
+    return ElevatedButton(
+      onPressed: state.buttonState == ActionButtonState.canStart
+          ? () {
+              bloc.add(StartGameEvent());
+            }
+          : null,
+      child: Text(_actionButtonTitle(state.buttonState, isAdmin: true)),
+    );
+  }
+
+  String _actionButtonTitle(
+    ActionButtonState state, {
+    bool isAdmin = false,
+  }) {
+    switch (state) {
+      case ActionButtonState.ready:
+        return "Cancel";
+      case ActionButtonState.unReady:
+        return isAdmin ? "Start" : "Ready";
+      case ActionButtonState.canStart:
+        return "Start";
+      case ActionButtonState.disable:
+        return "";
+      case ActionButtonState.pull:
+        return "Pull";
+      case ActionButtonState.showCard:
+        return "Show Card";
+      case ActionButtonState.checkCard:
+        return "Check Card";
+    }
   }
 
   AlertDialog _renderPetDialog(
@@ -171,22 +242,6 @@ class RoomScreen extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-
-  ElevatedButton _renderReadyButton(bool isAdmin, bool isReady, RoomBloc bloc) {
-    return ElevatedButton(
-      onPressed: (isAdmin && !isReady)
-          ? null
-          : () {
-              bloc.add(isReady
-                  ? isAdmin
-                      ? StartGameEvent()
-                      : CancelReadyEvent()
-                  : ReadyEvent());
-            },
-      child:
-          isAdmin ? const Text("Start") : Text(!isReady ? "Ready" : "Cancel"),
     );
   }
 

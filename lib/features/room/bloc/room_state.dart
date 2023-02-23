@@ -24,12 +24,12 @@ class RenderAdminState extends RoomState {
 
 class LeaveRoomSuccess extends RoomState {}
 
-class RenderReadyButtonState extends RoomState {
-  final bool isReady;
+class RenderActionButtonState extends RoomState {
+  final ActionButtonState buttonState;
   final bool isAdmin;
 
-  RenderReadyButtonState({
-    required this.isReady,
+  RenderActionButtonState({
+    required this.buttonState,
     required this.isAdmin,
   });
 }
@@ -40,4 +40,14 @@ class ErrorRoomState extends RoomState {
   ErrorRoomState({
     required this.errMess,
   });
+}
+
+enum ActionButtonState {
+  ready,
+  unReady,
+  canStart,
+  disable,
+  pull,
+  showCard,
+  checkCard,
 }

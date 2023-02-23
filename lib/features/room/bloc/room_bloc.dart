@@ -18,7 +18,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     required this.appSocketIo,
     required this.userCache,
   }) : super(RooInitState()) {
-    bool isReady = false;
+    ActionButtonState isReady = ActionButtonState.unReady;
     final List<Player> players = [];
     late String roomId;
     Player? admin;
@@ -27,10 +27,12 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
       void checkPlayerReady() {
         if (userCache.isAdmin) {
           if (players.isEmpty) {
-            isReady = false;
+            isReady = ActionButtonState.disable;
           } else {
-            isReady =
+            final ready =
                 players.firstWhereOrNull((element) => !element.isReady) == null;
+            isReady =
+                ready ? ActionButtonState.canStart : ActionButtonState.unReady;
           }
           add(_RenderReadyStateEvent(isReady: isReady));
         }
@@ -106,7 +108,12 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           if (players[i].playerId == data['playerId']) {
             players[i] = players[i].copyWith(isReady: true);
             if (players[i].isMySelf) {
-              add(_RenderReadyStateEvent(isReady: players[i].isReady));
+              isReady = players[i].isReady
+                  ? ActionButtonState.ready
+                  : ActionButtonState.unReady;
+              add(_RenderReadyStateEvent(
+                isReady: isReady,
+              ));
             }
           }
         }
@@ -121,13 +128,18 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           if (players[i].playerId == data['playerId']) {
             players[i] = players[i].copyWith(isReady: false);
             if (players[i].isMySelf) {
-              add(_RenderReadyStateEvent(isReady: players[i].isReady));
+              isReady = players[i].isReady
+                  ? ActionButtonState.ready
+                  : ActionButtonState.unReady;
+              add(_RenderReadyStateEvent(
+                isReady: isReady,
+              ));
             }
           }
         }
         add(_ReRenderChildPlayerEvent());
         if (userCache.isAdmin) {
-          isReady = false;
+          isReady = ActionButtonState.unReady;
           add(_RenderReadyStateEvent(isReady: isReady));
         }
       });
@@ -143,13 +155,17 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           cards: List<PokerCard>.from([]),
         );
         players.removeWhere((element) => element.playerId == userCache.id);
-        isReady =
+        final ready =
             players.firstWhereOrNull((element) => !element.isReady) == null;
+        isReady =
+            ready ? ActionButtonState.canStart : ActionButtonState.unReady;
         add(_ReRenderRoomEvent());
         add(_RenderReadyStateEvent(isReady: isReady));
       });
 
       appSocketIo.socket.on("newGame", (data) {
+        isReady = ActionButtonState.disable;
+        add(_RenderReadyStateEvent(isReady: isReady));
         add(_RenderGameEvent(data: data));
       });
 
@@ -167,8 +183,18 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
 
           add(_ReRenderChildPlayerEvent());
         } catch (e) {
-          //todo
+          add(_SocketError(errMess: e.toString()));
         }
+      });
+
+      appSocketIo.socket.on("SocketError", (data) {
+        String errMess = 'Something went wrong!';
+        try {
+          errMess = data['mess'];
+        } catch (e) {
+          errMess = e.toString();
+        }
+        add(_SocketError(errMess: errMess));
       });
     });
 
@@ -222,8 +248,6 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     });
 
     on<ReadyEvent>((event, emit) {
-      isReady = true;
-      add(_RenderReadyStateEvent(isReady: isReady));
       appSocketIo.socket.emit("playerReady", {
         "playerId": userCache.id,
         "roomId": roomId,
@@ -231,8 +255,6 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     });
 
     on<CancelReadyEvent>((event, emit) {
-      isReady = false;
-      add(_RenderReadyStateEvent(isReady: isReady));
       appSocketIo.socket.emit("playerCancelReady", {
         "playerId": userCache.id,
         "roomId": roomId,
@@ -240,14 +262,19 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     });
 
     on<StartGameEvent>((event, emit) {
+      isReady = ActionButtonState.unReady;
+      emit(RenderActionButtonState(
+        buttonState: isReady,
+        isAdmin: userCache.isAdmin,
+      ));
       appSocketIo.socket.emit("startNewGame", {
         "roomId": roomId,
       });
     });
 
     on<_RenderReadyStateEvent>((event, emit) {
-      emit(RenderReadyButtonState(
-        isReady: isReady && players.isNotEmpty,
+      emit(RenderActionButtonState(
+        buttonState: players.isNotEmpty ? isReady : ActionButtonState.disable,
         isAdmin: userCache.isAdmin,
       ));
     });
@@ -294,13 +321,14 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     appSocketIo.socket.off("playerCancelReady");
     appSocketIo.socket.off("newGame");
     appSocketIo.socket.off("playerPet");
+    appSocketIo.socket.off("SocketError");
   }
 }
 
 class _ReRenderRoomEvent extends RoomEvent {}
 
 class _RenderReadyStateEvent extends RoomEvent {
-  final bool isReady;
+  final ActionButtonState isReady;
 
   _RenderReadyStateEvent({
     required this.isReady,
@@ -322,5 +350,13 @@ class _RenderGameEvent extends RoomEvent {
 
   _RenderGameEvent({
     required this.data,
+  });
+}
+
+class _SocketError extends RoomEvent {
+  final String errMess;
+
+  _SocketError({
+    required this.errMess,
   });
 }
