@@ -1,13 +1,13 @@
 class UserCache {
   String? userName;
-  String? id;
+  String? playerId;
   String? socketId;
   bool isAdmin = false;
   int? index;
 
   UserCache({
     this.userName,
-    this.id,
+    this.playerId,
     this.socketId,
   });
 }

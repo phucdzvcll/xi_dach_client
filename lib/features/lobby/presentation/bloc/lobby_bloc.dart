@@ -140,7 +140,7 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
       emit(CreatingRoomState());
       appSocketIo.socket.emit("createRoom", {
         "roomName": event.roomName,
-        "playerId": userCache.id,
+        "playerId": userCache.playerId,
       });
     });
 

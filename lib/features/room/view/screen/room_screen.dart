@@ -131,24 +131,22 @@ class RoomScreen extends StatelessWidget {
                 ),
               ),
               Visibility(
-                visible: !isAdmin &&
-                    (ActionButtonState.ready == actionButtonState ||
-                        ActionButtonState.unReady == actionButtonState),
+                visible: ActionButtonState.pull == actionButtonState,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      if (ActionButtonState.unReady == actionButtonState) {
-                        bloc.add(ReadyEvent());
-                      } else {
-                        bloc.add(CancelReadyEvent());
-                      }
+                      bloc.add(PullCardEvent());
                     },
-                    child: Text(
-                      _actionButtonTitle(actionButtonState),
-                    ),
+                    child: Text(_actionButtonTitle(actionButtonState)),
                   ),
                 ),
+              ),
+              Visibility(
+                visible: !isAdmin &&
+                    (ActionButtonState.ready == actionButtonState ||
+                        ActionButtonState.unReady == actionButtonState),
+                child: _renderReadyButton(actionButtonState, bloc),
               ),
               Visibility(
                 visible:
@@ -164,6 +162,25 @@ class RoomScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Padding _renderReadyButton(
+      ActionButtonState actionButtonState, RoomBloc bloc) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: ElevatedButton(
+        onPressed: () {
+          if (ActionButtonState.unReady == actionButtonState) {
+            bloc.add(ReadyEvent());
+          } else {
+            bloc.add(CancelReadyEvent());
+          }
+        },
+        child: Text(
+          _actionButtonTitle(actionButtonState),
+        ),
+      ),
     );
   }
 
@@ -200,10 +217,10 @@ class RoomScreen extends StatelessWidget {
   }
 
   String _actionButtonTitle(
-    ActionButtonState state, {
+    ActionButtonState actionButtonState, {
     bool isAdmin = false,
   }) {
-    switch (state) {
+    switch (actionButtonState) {
       case ActionButtonState.ready:
         return "Cancel";
       case ActionButtonState.unReady:

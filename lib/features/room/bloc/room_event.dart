@@ -16,6 +16,8 @@ class StartGameEvent extends RoomEvent {}
 
 class ReadyEvent extends RoomEvent {}
 
+class PullCardEvent extends RoomEvent {}
+
 class CancelReadyEvent extends RoomEvent {}
 
 class PetEvent extends RoomEvent {

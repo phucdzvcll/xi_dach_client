@@ -27,7 +27,7 @@ class SignInRepositoryImpl implements SignInRepository {
     if (response.isSuccess()) {
       User value = userMapper.map(response.response);
       UserCache userCache = injector.get();
-      userCache.id = value.id;
+      userCache.playerId = value.id;
       userCache.userName = userName;
       return SuccessValue(value);
     } else {
