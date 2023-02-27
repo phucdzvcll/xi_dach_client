@@ -5,6 +5,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:xi_zack_client/common/constante.dart';
 import 'package:xi_zack_client/common/socket/app_socket.dart';
 import 'package:xi_zack_client/common/user_cache.dart';
+import 'package:xi_zack_client/common/utils.dart';
 import 'package:xi_zack_client/features/room/bloc/room_event.dart';
 import 'package:xi_zack_client/features/room/bloc/room_state.dart';
 import 'package:xi_zack_client/features/room/models/game.dart';
@@ -24,6 +25,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     late String roomId;
     Player? admin;
     String? gameId;
+    int point = 0;
     on<InitEvent>((event, emit) {
       void checkPlayerReady() {
         if (userCache.isAdmin) {
@@ -216,6 +218,10 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
 
         if (admin!.playerId == playerId) {
           admin!.cards.add(pokerCard);
+          point = AppUtils.calculatePoint(admin!.cards);
+          if (point >= 16) {
+            emit(RenderCheckButtonState(enable: true));
+          }
           add(_ReRenderRoomEvent());
         } else {
           for (int i = 0; i < players.length; i++) {
@@ -352,6 +358,12 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
           actionButtonState = ActionButtonState.pull;
           emit(RenderActionButtonState(
               buttonState: actionButtonState, isAdmin: userCache.isAdmin));
+          if (userCache.isAdmin) {
+            point = AppUtils.calculatePoint(playerDetail.cards);
+            if (point >= 16) {
+              emit(RenderCheckButtonState(enable: true));
+            }
+          }
         }
       } catch (e) {
         emit(ErrorRoomState(errMess: e.toString()));
@@ -368,6 +380,17 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
 
     on<_SocketError>((event, emit) {
       emit(ErrorRoomState(errMess: event.errMess));
+    });
+
+    on<NextTurnEvent>((event, emit) {
+      actionButtonState = ActionButtonState.disable;
+      emit(RenderActionButtonState(
+          buttonState: actionButtonState, isAdmin: userCache.isAdmin));
+      appSocketIo.socket.emit("nextTurn", {
+        "playerId": userCache.playerId,
+        "roomId": roomId,
+        "gameId": gameId,
+      });
     });
   }
 

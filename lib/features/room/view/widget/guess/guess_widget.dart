@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tap_debouncer/tap_debouncer.dart';
 import 'package:xi_zack_client/common/utils.dart';
+import 'package:xi_zack_client/features/room/bloc/room_bloc.dart';
+import 'package:xi_zack_client/features/room/bloc/room_state.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
 
 class GuessWidget extends StatelessWidget {
@@ -28,6 +32,24 @@ class GuessWidget extends StatelessWidget {
             ),
           ),
         ),
+        BlocBuilder<RoomBloc, RoomState>(
+          buildWhen: (previous, current) => current is RenderCheckButtonState,
+          builder: (context, state) {
+            return Visibility(
+              visible: (state is RenderCheckButtonState) && state.enable,
+              child: TapDebouncer(
+                cooldown: const Duration(seconds: 9999),
+                onTap: () async {},
+                builder: (ctx, onTap) {
+                  return ElevatedButton(
+                    onPressed: onTap,
+                    child: const Text("Check"),
+                  );
+                },
+              ),
+            );
+          },
+        )
       ],
     );
   }

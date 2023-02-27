@@ -29,7 +29,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
       children: [
         const Icon(Icons.person),
         Text(widget.player.playerId),
-        Text(widget.player.isReady.toString()),
+        Text(AppUtils.calculatePoint(widget.player.cards).toString()),
         Text(widget.player.pet.toString()),
         Visibility(
           visible: widget.player.cards.isNotEmpty,

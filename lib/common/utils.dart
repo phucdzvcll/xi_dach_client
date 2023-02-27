@@ -111,6 +111,15 @@ class AppUtils {
         21;
   }
 
+  static int calculatePoint(List<PokerCard> cards) {
+    int point = 0;
+    for (var element in cards) {
+      point += getCardValue(
+          cardId: element, cardAmount: cards.length, currentValue: point);
+    }
+    return point;
+  }
+
   static Widget renderCard(
     PokerCard? cardId, {
     double? width,

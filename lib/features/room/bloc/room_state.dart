@@ -42,6 +42,14 @@ class ErrorRoomState extends RoomState {
   });
 }
 
+class RenderCheckButtonState extends RoomState {
+  final bool enable;
+
+  RenderCheckButtonState({
+    required this.enable,
+  });
+}
+
 enum ActionButtonState {
   ready,
   unReady,

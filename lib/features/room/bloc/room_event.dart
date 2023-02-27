@@ -18,6 +18,8 @@ class ReadyEvent extends RoomEvent {}
 
 class PullCardEvent extends RoomEvent {}
 
+class NextTurnEvent extends RoomEvent {}
+
 class CancelReadyEvent extends RoomEvent {}
 
 class PetEvent extends RoomEvent {

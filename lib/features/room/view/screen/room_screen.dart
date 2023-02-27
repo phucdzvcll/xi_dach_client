@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:tap_debouncer/tap_debouncer.dart';
 import 'package:xi_zack_client/common/base/extensions/extensions.dart';
 import 'package:xi_zack_client/features/room/models/room_player.dart';
 import 'package:xi_zack_client/features/room/view/widget/guess/guess_widget.dart';
@@ -122,9 +123,11 @@ class RoomScreen extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (state is RenderActionButtonState) ...[
+            if (state is RenderActionButtonState &&
+                actionButtonState != ActionButtonState.disable) ...[
               Visibility(
-                visible: isAdmin,
+                visible:
+                    isAdmin && actionButtonState == ActionButtonState.canStart,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: _renderAdminButton(state, bloc),
@@ -134,12 +137,17 @@ class RoomScreen extends StatelessWidget {
                 visible: ActionButtonState.pull == actionButtonState,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      bloc.add(PullCardEvent());
-                    },
-                    child: Text(_actionButtonTitle(actionButtonState)),
-                  ),
+                  child: TapDebouncer(
+                      cooldown: const Duration(milliseconds: 300),
+                      onTap: () async {
+                        bloc.add(PullCardEvent());
+                      },
+                      builder: (context, onTap) {
+                        return ElevatedButton(
+                          onPressed: onTap,
+                          child: Text(_actionButtonTitle(actionButtonState)),
+                        );
+                      }),
                 ),
               ),
               Visibility(
@@ -147,6 +155,22 @@ class RoomScreen extends StatelessWidget {
                     (ActionButtonState.ready == actionButtonState ||
                         ActionButtonState.unReady == actionButtonState),
                 child: _renderReadyButton(actionButtonState, bloc),
+              ),
+              Visibility(
+                visible: actionButtonState == ActionButtonState.pull,
+                child: TapDebouncer(
+                    cooldown: const Duration(milliseconds: 300),
+                    onTap: () async {
+                      bloc.add(NextTurnEvent());
+                    },
+                    builder: (context, onTap) {
+                      return ElevatedButton(
+                        onPressed: onTap,
+                        child: Text(
+                          isAdmin ? "Check All" : "Next Turn",
+                        ),
+                      );
+                    }),
               ),
               Visibility(
                 visible:
@@ -169,50 +193,65 @@ class RoomScreen extends StatelessWidget {
       ActionButtonState actionButtonState, RoomBloc bloc) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: ElevatedButton(
-        onPressed: () {
+      child: TapDebouncer(
+        onTap: () async {
           if (ActionButtonState.unReady == actionButtonState) {
             bloc.add(ReadyEvent());
           } else {
             bloc.add(CancelReadyEvent());
           }
         },
-        child: Text(
-          _actionButtonTitle(actionButtonState),
-        ),
+        builder: (context, onTap) {
+          return ElevatedButton(
+            onPressed: onTap,
+            child: Text(
+              _actionButtonTitle(actionButtonState),
+            ),
+          );
+        },
+        cooldown: const Duration(milliseconds: 300),
       ),
     );
   }
 
-  ElevatedButton _renderPetButton(BuildContext ctx, RoomBloc bloc) {
-    return ElevatedButton(
-      onPressed: () {
-        showDialog(
-            context: ctx,
-            builder: (ctx) {
-              TextEditingController controller = TextEditingController();
-              return _renderPetDialog(controller, ctx);
-            }).then((value) {
-          if (value is int) {
-            bloc.add(PetEvent(pet: value));
-          }
+  Widget _renderPetButton(BuildContext ctx, RoomBloc bloc) {
+    return TapDebouncer(
+        cooldown: const Duration(milliseconds: 300),
+        onTap: () async {
+          showDialog(
+              context: ctx,
+              builder: (ctx) {
+                TextEditingController controller = TextEditingController();
+                return _renderPetDialog(controller, ctx);
+              }).then((value) {
+            if (value is int) {
+              bloc.add(PetEvent(pet: value));
+            }
+          });
+        },
+        builder: (context, onTap) {
+          return ElevatedButton(
+            onPressed: onTap,
+            child: const Text("Pet"),
+          );
         });
-      },
-      child: Text("Pet"),
-    );
   }
 
   Widget _renderAdminButton(
     RenderActionButtonState state,
     RoomBloc bloc,
   ) {
-    return ElevatedButton(
-      onPressed: state.buttonState == ActionButtonState.canStart
-          ? () {
-              bloc.add(StartGameEvent());
-            }
-          : null,
-      child: Text(_actionButtonTitle(state.buttonState, isAdmin: true)),
+    return TapDebouncer(
+      onTap: () async {
+        bloc.add(StartGameEvent());
+      },
+      cooldown: const Duration(milliseconds: 300),
+      builder: (ctx, onTap) {
+        return ElevatedButton(
+          onPressed: onTap,
+          child: Text(_actionButtonTitle(state.buttonState, isAdmin: true)),
+        );
+      },
     );
   }
 
